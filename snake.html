@@ -1,155 +1,195 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Jogodacobrinha</title>
-</head>
+  </head>
 
-<body>
-
-    <div id="timer"></div>
-
-    <canvas id="stage" width="600" height="600"></canvas>
+  <body>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 90vw;
+        height: 90vh;
+        flex-direction: column;
+        margin: 0 auto;
+      "
+    >
+      <p
+        class="timer"
+        style="
+          font-weight: bold;
+          width: 100%;
+          text-align: center;
+          margin-top: 5vh;
+        "
+      >
+        01:00
+      </p>
+      <canvas id="stage" width="600" height="600"></canvas>
+    </div>
 
     <script type="text/javascript">
+      const APPLE_QUANTITY = 15;
+      const OBSTACLE_QUANTITY = 10;
+      let LIFES = 5;
+      let EATEN_APPLES = 0;
 
-        function startTimer(duration, display) {
-            var timer = duration, minutes, seconds;
-            setInterval(function () {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-                display.textContent = minutes + ":" + seconds;
-                if (--timer < 0) {
-                    timer = duration;
-                }
-            }, 1000);
+      function random() {
+        return Math.floor(Math.random() * 19);
+      }
+
+      let coordsApple = [];
+      for (let i = 0; i < APPLE_QUANTITY; i++) {
+        coordsApple.push({ x: random(), y: random() });
+      }
+
+      let coordsObstacles = [];
+      for (let i = 0; i < OBSTACLE_QUANTITY; i++) {
+        let x = random();
+        let y = random();
+        while (
+          coordsApple.find(function (apple) {
+            if (x == 10 && y == 15) return true;
+            return apple.x == x && apple.y == y;
+          })
+        ) {
+          x = random();
+          y = random();
+        }
+        coordsObstacles.push({ x: x, y: y });
+      }
+      function startTimer(duration, display) {
+        var timer = duration,
+          minutes,
+          seconds;
+        setInterval(function () {
+          minutes = parseInt(timer / 60, 10);
+          seconds = parseInt(timer % 60, 10);
+          minutes = minutes < 10 ? "0" + minutes : minutes;
+          seconds = seconds < 10 ? "0" + seconds : seconds;
+          display.textContent = minutes + ":" + seconds;
+          if (--timer < 0) {
+            timer = duration;
+            window.alert("O tempo acabou!");
+            window.location.reload();
+          }
+        }, 1000);
+      }
+
+      window.onload = function () {
+        var duration = 60 * 1; // Converter para segundos
+        display = document.querySelector(".timer"); // selecionando o timer
+        startTimer(duration, display); // iniciando o timer
+        var stage = document.getElementById("stage");
+        var ctx = stage.getContext("2d");
+        document.addEventListener("keydown", keyPush);
+        setInterval(game, 85);
+
+        const vel = 1;
+
+        var vx = (vy = 0);
+        var px = 10;
+        var py = 15;
+        var tp = 30;
+        var qp = 20;
+
+        var caminho = [];
+        rabo = 5;
+
+        function game() {
+          px += vx;
+          py += vy;
+
+          if (px < 0) {
+            px = qp - 1;
+          }
+          if (px > qp - 1) {
+            px = 0;
+          }
+          if (py < 0) {
+            py = qp - 1;
+          }
+          if (py > qp - 1) {
+            py = 0;
+          }
+
+          ctx.fillStyle = "black";
+          ctx.fillRect(0, 0, stage.width, stage.height);
+
+          ctx.fillStyle = "red";
+          coordsApple.forEach((value, index) => {
+            ctx.fillRect(value.x * tp, value.y * tp, tp, tp);
+          });
+
+          ctx.fillStyle = "orange";
+          coordsObstacles.forEach((value, index) => {
+            ctx.fillRect(value.x * tp, value.y * tp, tp, tp);
+          });
+
+          ctx.fillStyle = "green";
+          for (var i = 0; i < caminho.length; i++) {
+            ctx.fillRect(caminho[i].x * tp, caminho[i].y * tp, tp - 1, tp - 1);
+            if (caminho[i].x == px && caminho[i].y == py) {
+              vx = vy = 0;
+              rabo = 5;
+            }
+          }
+          caminho.push({ x: px, y: py });
+          while (caminho.length > rabo) {
+            caminho.shift();
+          }
+
+          coordsApple.forEach((value, index) => {
+            if (value.x == px && value.y == py) {
+              coordsApple[index] = null;
+              coordsApple = coordsApple.filter((value) => value != null);
+              rabo++;
+              EATEN_APPLES++;
+              if (EATEN_APPLES == 3) {
+                  LIFES++;
+                  alert('Você ganhou uma vida! Total de vidas: ' + LIFES);
+                  EATEN_APPLES = 0;
+              }
+            }
+          });
+          coordsObstacles.forEach((value, index) => {
+            if (value.x == px && value.y == py) {
+              LIFES--;
+              if (LIFES == 0) {
+                alert("Game Over");
+                window.location.reload();
+              } else {
+                alert("Voce colidiu com um obstaculo, sua vida é: " + LIFES);
+              }
+            }
+          });
         }
         
-
-        function random() {
-            return Math.floor(Math.random() * (19));
+        function keyPush(event) {
+          switch (event.keyCode) {
+            case 37:
+              vx = -vel;
+              vy = 0;
+              break;
+            case 38:
+              vx = 0;
+              vy = -vel;
+              break;
+            case 39:
+              vx = vel;
+              vy = 0;
+              break;
+            case 40:
+              vx = 0;
+              vy = vel;
+              break;
+            default:
+              break;
+          }
         }
-        let coords = [];
-        for (let i = 0; i < 15; i++) {
-            coords.push({ x: random(), y: random() });
-        }
-
-        window.onload = function () {
-
-            var duration = 60 * 1; // Converter para segundos
-            display = document.querySelector('#timer'); // selecionando o timer
-            startTimer(duration, display); // iniciando o timer
-
-
-
-            var stage = document.getElementById('stage');
-            var ctx = stage.getContext("2d");
-            document.addEventListener("keydown", keyPush);
-            setInterval(game, 100);
-
-            const vel = 1;
-
-            let vida = 5;
-
-            var vx = vy = 0;
-            var px = 10;
-            var py = 15;
-            var tp = 30;
-            var qp = 20;
-
-            let ox = 15;
-            let oy = 8;
-
-            var caminho = [];
-            rabo = 5;
-
-            function game() {
-                px += vx;
-                py += vy;
-
-                if (px < 0) {
-                    px = qp - 1;
-                }
-                if (px > qp - 1) {
-                    px = 0;
-                }
-                if (py < 0) {
-                    py = qp - 1;
-                }
-                if (py > qp - 1) {
-                    py = 0;
-                }
-
-                ctx.fillStyle = "black";
-                ctx.fillRect(0, 0, stage.width, stage.height);
-
-                ctx.fillStyle = "orange";
-                ctx.fillRect(ox * tp, oy * tp, tp, tp);
-
-                if (ox == px && oy == py) {
-                    alert("Voce colidiu")
-                    vida--;
-                }
-
-                if (vida == 0) {
-                    alert("Game Over")
-                }
-
-
-                ctx.fillStyle = "red";
-                coords.forEach((value, index) => {
-                    ctx.fillRect(value.x * tp, value.y * tp, tp, tp);
-                })
-
-                ctx.fillStyle = "green";
-                for (var i = 0; i < caminho.length; i++) {
-                    ctx.fillRect(caminho[i].x * tp, caminho[i].y * tp, tp - 1, tp - 1);
-                    if (caminho[i].x == px && caminho[i].y == py) {
-                        vx = vy = 0;
-                        rabo = 5;
-                    }
-                }
-                caminho.push({ x: px, y: py })
-                while (caminho.length > rabo) {
-                    caminho.shift();
-                }
-
-                coords.forEach((value, index) => {
-                    if (value.x == px && value.y == py) {
-
-                        coords[index] = null
-                        coords = coords.filter(value => value != null);
-                        rabo++;
-                    }
-                })
-            }
-            function keyPush(event) {
-
-                switch (event.keyCode) {
-                    case 37:
-                        vx = -vel;
-                        vy = 0;
-                        break;
-                    case 38:
-                        vx = 0;
-                        vy = -vel;
-                        break;
-                    case 39:
-                        vx = vel;
-                        vy = 0;
-                        break;
-                    case 40:
-                        vx = 0;
-                        vy = vel;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+      };
     </script>
-</body>
-
+  </body>
 </html>
