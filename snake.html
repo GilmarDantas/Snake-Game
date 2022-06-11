@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Jogodacobrinha</title>
+    <title>GAME-SNAKE</title>
   </head>
 
   <body>
@@ -16,25 +16,35 @@
         margin: 0 auto;
       "
     >
-      <p
-        class="timer"
-        style="
-          font-weight: bold;
-          width: 100%;
-          text-align: center;
-          margin-top: 5vh;
-        "
-      >
-        01:00
-      </p>
+    <div style="
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      width: 38vw;
+    ">
+        <p
+          class="timer"
+          style="
+            font-weight: bold;
+          "
+        >
+          <span>01:00</span> 
+        </p>
+        
+          <span>Vidas:<span>  <span id="vidas"></span>
+        
+      </div>
       <canvas id="stage" width="600" height="600"></canvas>
     </div>
 
     <script type="text/javascript">
       const APPLE_QUANTITY = 15;
       const OBSTACLE_QUANTITY = 10;
+      const vidas = document.querySelector("#vidas");
       let LIFES = 5;
+      vidas.textContent = LIFES
       let EATEN_APPLES = 0;
+      let TOTAL_EATEN_APPLES = 0;
 
       function random() {
         return Math.floor(Math.random() * 19);
@@ -123,7 +133,7 @@
             ctx.fillRect(value.x * tp, value.y * tp, tp, tp);
           });
 
-          ctx.fillStyle = "orange";
+          ctx.fillStyle = "gray";
           coordsObstacles.forEach((value, index) => {
             ctx.fillRect(value.x * tp, value.y * tp, tp, tp);
           });
@@ -146,10 +156,16 @@
               coordsApple[index] = null;
               coordsApple = coordsApple.filter((value) => value != null);
               rabo++;
+              TOTAL_EATEN_APPLES++
               EATEN_APPLES++;
+           
+              if(APPLE_QUANTITY === TOTAL_EATEN_APPLES) {
+                alert("Você ganhou!")
+                window.location.reload();
+              }
               if (EATEN_APPLES == 3) {
                   LIFES++;
-                  alert('Você ganhou uma vida! Total de vidas: ' + LIFES);
+                  vidas.textContent = LIFES;
                   EATEN_APPLES = 0;
               }
             }
@@ -157,11 +173,10 @@
           coordsObstacles.forEach((value, index) => {
             if (value.x == px && value.y == py) {
               LIFES--;
+              vidas.textContent = LIFES;
               if (LIFES == 0) {
                 alert("Game Over");
                 window.location.reload();
-              } else {
-                alert("Voce colidiu com um obstaculo, sua vida é: " + LIFES);
               }
             }
           });
